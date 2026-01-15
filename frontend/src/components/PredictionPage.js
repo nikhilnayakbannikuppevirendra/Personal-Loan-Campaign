@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Form, InputNumber, Button, Card, Modal, Select, Tooltip  } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import ImportantMeasures from "./ImportantMeasures"; 
 import { fetchPrediction } from "../fetch/api";
+
 
 const { Option } = Select;
 
@@ -10,12 +11,21 @@ export default function PredictionPage() {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const resultRef = useRef(null);
+
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
       const res = await fetchPrediction(values);
       setPrediction(res.loan_approval_prediction);
+
+      setTimeout(() => {
+      resultRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 200);
     } catch (err) {
       console.error(err);
     }
@@ -49,27 +59,27 @@ export default function PredictionPage() {
       <Form layout="vertical" onFinish={onFinish}>
         {/* Age */}
         <Form.Item label="Age" name="Age" rules={[{ required: true }]}>
-          <InputNumber min={18} max={100} style={{ width: "100%" }} />
+          <InputNumber min={18} max={100} style={{ width: "100%" }} placeholder="Enter your Age" />
         </Form.Item>
 
         {/* Experience */}
         <Form.Item label="No of Years Experience" name="Experience" rules={[{ required: true }]}>
-          <InputNumber min={0} max={50} style={{ width: "100%" }} />
+          <InputNumber min={0} max={50} style={{ width: "100%" }} placeholder="Enter your Number of Years Experience"/>
         </Form.Item>
 
         {/* Income */}
         <Form.Item label="Income (Annual in $)" name="Income" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: "100%" }} />
+          <InputNumber min={0} style={{ width: "100%" }} placeholder="Enter your Annual Income in $"/>
         </Form.Item>
 
         {/* Family */}
         <Form.Item label="No of Family Members" name="Family" rules={[{ required: true }]}>
-          <InputNumber min={1} max={10} style={{ width: "100%" }} />
+          <InputNumber min={1} max={10} style={{ width: "100%" }} placeholder="Enter the Total No of Family Members"/>
         </Form.Item>
 
         {/* CCAvg */}
         <Form.Item label="Average Credit Card Spending per Month (CC_Avg)" name="CCAvg" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.1} style={{ width: "100%" }} />
+          <InputNumber min={0} step={0.1} style={{ width: "100%" }} placeholder="Enter the Value" />
         </Form.Item>
 
         {/* Education */}
@@ -83,12 +93,12 @@ export default function PredictionPage() {
 
         {/* Mortgage */}
         <Form.Item label="Mortgage ($)" name="Mortgage" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: "100%" }} />
+          <InputNumber min={0} style={{ width: "100%" }}placeholder="Enter the Value" />
         </Form.Item>
 
         {/* Securities_Account */}
         <Form.Item label="Securities Account?" name="Securities_Account" rules={[{ required: true }]}>
-          <Select placeholder="Select">
+          <Select placeholder="Select Securities Account">
             <Option value={1}>Yes</Option>
             <Option value={0}>No</Option>
           </Select>
@@ -96,7 +106,7 @@ export default function PredictionPage() {
 
         {/* CD_Account */}
         <Form.Item label="Certificate of Deposit (CD Account)?" name="CD_Account" rules={[{ required: true }]}>
-          <Select placeholder="Select">
+          <Select placeholder="Select Certificate of Deposit">
             <Option value={1}>Yes</Option>
             <Option value={0}>No</Option>
           </Select>
@@ -104,7 +114,7 @@ export default function PredictionPage() {
 
         {/* Online */}
         <Form.Item label="Use Internet Banking?" name="Online" rules={[{ required: true }]}>
-          <Select placeholder="Select">
+          <Select placeholder="Select Internet Banking">
             <Option value={1}>Yes</Option>
             <Option value={0}>No</Option>
           </Select>
@@ -125,21 +135,24 @@ export default function PredictionPage() {
 
       {/* Prediction Result */}
       {prediction !== null && (
-        <Card
-          style={{
-            marginTop: "20px",
-            backgroundColor: prediction === 1 ? "#b7eb8f" : "#ffa39e",
-            textAlign: "center"
-          }}
-        >
-          {prediction === 1 ? "Loan Likely Approved" : "Loan Likely Rejected"}
-          <div style={{ marginTop: "10px" }}>
-            <Button type="link" onClick={showModal}>
-              Important Measures
-            </Button>
-          </div>
-        </Card>
+        <div ref={resultRef}>
+          <Card
+            style={{
+              marginTop: "20px",
+              backgroundColor: prediction === 1 ? "#b7eb8f" : "#ffa39e",
+              textAlign: "center"
+            }}
+          >
+            {prediction === 1 ? "Loan Likely Approved" : "Loan Likely Rejected"}
+            <div style={{ marginTop: "10px" }}>
+              <Button type="link" onClick={showModal}>
+                Important Measures
+              </Button>
+            </div>
+          </Card>
+        </div>
       )}
+
 
       {/* Important Measures Modal */}
       <ImportantMeasures
